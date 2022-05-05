@@ -132,9 +132,8 @@ export default function Home({ navigation }) {
   const [search, setSearch] = useState("");
 
   const searchItem = () => {
-    navigation.navigate("MarketStack", {
-      screen: "Market",
-      params: { search },
+    navigation.navigate("Search", {
+      search,
     });
   };
 

@@ -21,7 +21,7 @@ const Product = (props) => {
       onPress={() =>
         navigation.navigate("Product", {
           ...props,
-          image: imageUrl + image,
+          short_image: image,
         })
       }
       activeOpacity={0.8}

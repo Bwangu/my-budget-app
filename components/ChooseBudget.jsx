@@ -6,6 +6,7 @@ import {
   FlatList,
   View,
   TouchableOpacity,
+  ToastAndroid,
 } from "react-native";
 import React, { useContext, useEffect, useState } from "react";
 import { colors } from "../constants";
@@ -31,9 +32,12 @@ export default function ChooseBudget({ visible, close, budget }) {
   const addToBudget = async (budget) => {
     setLoading(true);
     const response = await addBudgetItem(budget);
-    console.log(await response.text());
-    close();
     setLoading(false);
+    ToastAndroid.show(
+      `added ${budget.food} to ${budget.title}`,
+      ToastAndroid.SHORT
+    );
+    close();
   };
 
   useEffect(() => {
@@ -57,7 +61,9 @@ export default function ChooseBudget({ visible, close, budget }) {
             data={budgets}
             renderItem={({ item }) => (
               <TouchableOpacity
-                onPress={() => addToBudget({ ...budget, budget: item.id })}
+                onPress={() =>
+                  addToBudget({ ...budget, budget: item.id, title: item.title })
+                }
                 style={styles.listItem}
               >
                 <Text style={{ fontSize: 15 }}>{item.title}</Text>

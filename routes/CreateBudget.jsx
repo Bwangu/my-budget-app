@@ -15,10 +15,11 @@ import { Formik } from "formik";
 import userContext from "../context/user";
 
 import { colors } from "../constants";
-import { getBudgets } from "../api";
+import { createBudget, getBudgets } from "../api";
 
 export default function CreateBudget() {
   const [prevBudgets, setPrevBudgets] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [budgetsLoading, setBudgetsLoading] = useState(true);
 
   const { user } = useContext(userContext);
@@ -35,8 +36,9 @@ export default function CreateBudget() {
   };
 
   const handleSubmit = async (values) => {
-    // const response = await createBudget({ ...values });
-    ToastAndroid.show("budget created successfully", ToastAndroid.SHORT);
+    const response = await createBudget({ ...values, user: user.id });
+    setLoading(false);
+    ToastAndroid.show(await response.json(), ToastAndroid.SHORT);
   };
 
   const get = async () => {
@@ -107,7 +109,13 @@ export default function CreateBudget() {
               </View>
               <View>
                 <TouchableOpacity style={styles.button} onPress={handleSubmit}>
-                  <Text style={styles.buttonText}>Create Budget</Text>
+                  <Text style={styles.buttonText}>
+                    {loading ? (
+                      <ActivityIndicator color={"white"} size="small" />
+                    ) : (
+                      "Create Budget"
+                    )}
+                  </Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -123,7 +131,7 @@ export default function CreateBudget() {
               onPress={() =>
                 navigation.navigate("Main", {
                   screen: "BudgetProducts",
-                  params: { id },
+                  params: { id, title },
                 })
               }
               style={styles.prevBudget}

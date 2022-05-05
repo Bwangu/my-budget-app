@@ -19,6 +19,7 @@ import {
   CreateBudget,
   Home,
   Login,
+  Search,
   Market,
   MarketDetails,
   MonthlyBudget,
@@ -36,10 +37,13 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const Header = () => {
   const { setOpen } = useContext(modalContext);
+  const open = () => {
+    setOpen(true);
+  };
   return (
     <SafeAreaView>
       <View style={styles.nav}>
-        <TouchableOpacity style={styles.menu} onPress={() => setOpen(true)}>
+        <TouchableOpacity style={styles.menu} onPress={open}>
           <MaterialIcons name="menu" color={colors.purpleColor} size={30} />
         </TouchableOpacity>
         <Text style={styles.title}>MyBudget App</Text>
@@ -103,9 +107,10 @@ const TabBar = () => {
         <Modal
           style={styles.modal}
           isOpen={isOpen}
-          swipeToClose
-          swipeThreshold={50}
           onClosed={close}
+          swipeToClose
+          backButtonClose
+          swipeThreshold={50}
         >
           <View style={styles.modalPill}></View>
           <TouchableOpacity onPress={logout} style={styles.logout}>
@@ -121,6 +126,7 @@ const StackNavigation = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }}>
     <Stack.Screen name="Home" component={Home} />
     <Stack.Screen name="Category" component={Category} />
+    <Stack.Screen name="Search" component={Search} />
     <Stack.Screen name="CreateBudget" component={CreateBudget} />
     <Stack.Screen name="BudgetProducts" component={BudgetProducts} />
     <Stack.Screen name="MonthlyBudget" component={MonthlyBudget} />
@@ -213,7 +219,7 @@ const styles = StyleSheet.create({
   },
 
   modal: {
-    height: "40%",
+    height: "70%",
     position: "absolute",
     bottom: 0,
     width: "100%",

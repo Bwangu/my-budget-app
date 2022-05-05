@@ -13,25 +13,30 @@ import { getFoods } from "../api";
 import { colors } from "../constants";
 
 const imageUrl = "https://mybudgetapplication.com/App/images/";
-export default function Category({ navigation, route }) {
+export default function Search({ navigation, route }) {
   const [loading, setLoading] = useState(true);
   const [products, setProducts] = useState([]);
 
-  const { name } = route.params;
+  const { search } = route.params;
 
   // get markets
-  const get = async () => {
+  const get = async (search) => {
     const response = await getFoods();
+    const responseData = await response.json();
     setLoading(false);
-    if (response.ok) setProducts(await response.json());
+    const searchedFilter = responseData.filter((item) =>
+      item.food.toLowerCase().includes(search.toLowerCase())
+    );
+    console.log(searchedFilter);
+    setProducts(searchedFilter);
   };
 
-  useEffect(() => get(), []);
+  useEffect(() => get(search), [search]);
 
   return (
     <ScrollView style={styles.container}>
       <View style={{ flex: 1 }}>
-        <Text style={styles.title}>{name} Category</Text>
+        <Text style={styles.title}>{search} Results</Text>
         {loading && (
           <ActivityIndicator color={colors.purpleColor} size={"large"} />
         )}
@@ -47,10 +52,10 @@ export default function Category({ navigation, route }) {
                       name,
                       food,
                       price,
-                      short_image:image,
                       shop_name,
                       description,
                       image: imageUrl + image,
+                      short_image: image,
                     },
                   })
                 }
@@ -89,6 +94,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: colors.purpleColor,
     textAlign: "center",
+    textTransform: "capitalize",
     marginVertical: 20,
   },
   input: {

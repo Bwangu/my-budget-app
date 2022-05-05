@@ -45,10 +45,8 @@ export default function Login({ navigation }) {
 
             if (!response.ok) {
               setLoading(false);
-              return setMessage(user);
+              return setMessage(user && user.message);
             }
-            console.log('middle')
-
             await AsyncStorage.setItem("@Budget:user", JSON.stringify(user));
             setLoading(false);
             setUser(user);
@@ -108,11 +106,7 @@ export default function Login({ navigation }) {
                 </TouchableOpacity>
               </View>
               <TouchableOpacity
-                onPress={() =>
-                  navigation.navigate("AuthStack", {
-                    screen: "CreateAccount",
-                  })
-                }
+                onPress={() => navigation.navigate("CreateAccount")}
                 activeOpacity={0.8}
               >
                 <Text style={styles.createAccountText}>

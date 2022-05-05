@@ -10,3 +10,4 @@ export { default as BudgetProducts } from "./BudgetProducts";
 export { default as MonthlyBudget } from "./MonthlyBudget";
 export { default as WeeklyRecipe } from "./WeeklyRecipe";
 export { default as Recipe} from "./Recipe";
+export { default as Search} from "./Search";

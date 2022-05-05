@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import {
-  Alert,
   TouchableOpacity,
   StyleSheet,
   Text,
@@ -9,15 +8,13 @@ import {
   FlatList,
   ActivityIndicator,
 } from "react-native";
-import { MaterialIcons } from "@expo/vector-icons";
 import { getMonthlyBudgetItems } from "../api";
 import { colors } from "../constants";
 
 const imageUrl = "https://mybudgetapplication.com/App/images/";
-export default function BudgetProducts({ navigation, route }) {
+export default function BudgetProducts({ navigation }) {
   const [budgets, setBudget] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [deleteLoading, setDeleteLoading] = useState(false);
 
   const get = async () => {
     const response = await getMonthlyBudgetItems();
@@ -56,6 +53,7 @@ export default function BudgetProducts({ navigation, route }) {
               params: {
                 id,
                 image: imageUrl + image,
+                short_image: image,
                 name: market,
                 shop_name,
                 food,
@@ -74,19 +72,6 @@ export default function BudgetProducts({ navigation, route }) {
           <View style={styles.details}>
             <Text style={styles.name}>{food}</Text>
             <Text style={styles.price}>K{price}</Text>
-          </View>
-          <View>
-            <TouchableOpacity
-              onPress={() => deleteBudget(id)}
-              style={styles.deleteButton}
-              activeOpacity={0.8}
-            >
-              {deleteLoading ? (
-                <ActivityIndicator color={"white"} size="small" />
-              ) : (
-                <MaterialIcons name="close" color="white" size={25} />
-              )}
-            </TouchableOpacity>
           </View>
         </TouchableOpacity>
       )}

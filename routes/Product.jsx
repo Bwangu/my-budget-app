@@ -16,8 +16,10 @@ export default function Product({ route }) {
 
   const close = () => setVisible(false);
 
+  const imageUrl = "https://mybudgetapplication.com/images/"
   const params = route.params;
-  const { shop_name, food, image, description, price, name } = params;
+  const { shop_name, food, image, short_image, description, price, name } =
+    params;
 
   return (
     <ScrollView style={styles.container}>
@@ -44,7 +46,7 @@ export default function Product({ route }) {
           </View>
         </View>
       </View>
-      <ChooseBudget budget={params} close={close} visible={visible} />
+      <ChooseBudget budget={{...params, image: short_image}} close={close} visible={visible} />
     </ScrollView>
   );
 }

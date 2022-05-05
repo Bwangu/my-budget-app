@@ -17,16 +17,18 @@ const imageUrl = "https://mybudgetapplication.com/App/images/";
 export default function BudgetProducts({ navigation, route }) {
   const [budgets, setBudget] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [total, setTotal] = useState(0);
   const [deleteLoading, setDeleteLoading] = useState(false);
 
-  const { id } = route.params;
+  const { id, title } = route.params;
 
-  const deleteBudget = async (id) => {
+  const deleteBudget = async (id, price) => {
     const remove = async () => {
       setDeleteLoading(true);
       await deleteBudgetItem(id);
       setDeleteLoading(false);
       setBudget(budgets.filter((budget) => budget.id != id));
+      setTotal(total => total - price)
     };
 
     Alert.alert("Are you sure", "you want to remove this item", [
@@ -46,15 +48,34 @@ export default function BudgetProducts({ navigation, route }) {
     const response = await getBudgetItems(id);
     const budgetItems = await response.json();
     setLoading(false);
+
+    budgetItems.map((budget) => {
+      setTotal((total) => total + parseInt(budget.price));
+    });
+
     setBudget(budgetItems);
   };
 
-  useEffect(() => get(), []);
+  useEffect(() => {
+    get();
+  }, []);
+
   return (
     <FlatList
       ListHeaderComponent={() => (
         <View>
-          <Text style={styles.title}>Products in my Budget</Text>
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "center",
+              paddingHorizontal: 10,
+            }}
+          >
+            <Text style={styles.title}>Products in {title}</Text>
+            <Text style={styles.title}>{!loading && `Total: ${total}`}</Text>
+          </View>
+
           {loading && (
             <ActivityIndicator color={colors.purpleColor} size="large" />
           )}
@@ -98,7 +119,7 @@ export default function BudgetProducts({ navigation, route }) {
           </View>
           <View>
             <TouchableOpacity
-              onPress={() => deleteBudget(id)}
+              onPress={() => deleteBudget(id, price)}
               style={styles.deleteButton}
               activeOpacity={0.8}
             >
@@ -124,8 +145,8 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     fontSize: 18,
     color: colors.purpleColor,
-    textAlign: "center",
     marginTop: 20,
+    marginBottom: 10,
   },
   budgetItem: {
     flexDirection: "row",

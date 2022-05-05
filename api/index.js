@@ -1,7 +1,7 @@
 const url = "http://mybudgetapplication.com/App";
 
 async function createBudget(data) {
-  return await fetch(url + "/create-budget.php", {
+  return await fetch(url + "/budget/create.php", {
     method: "POST",
     body: JSON.stringify(data),
   });
