@@ -1,97 +1,115 @@
-import React, { useState, useEffect, Fragment } from 'react';
+import React, { useState, useEffect, Fragment } from "react";
 import {
-  ScrollView,
   StyleSheet,
   Text,
   Image,
   View,
   TextInput,
   TouchableOpacity,
-} from 'react-native';
-import { getMarkets } from '../api';
-import { colors } from '../constants';
+  FlatList,
+  ActivityIndicator,
+} from "react-native";
+import { getMarkets } from "../api";
+import { colors } from "../constants";
 
-export default function Market({ navigation }) {
-  const [searchText, setSearchText] = useState('');
-  const [markets, setMarkets] = useState([
-    {
-      id: '1',
-      name: 'Soweto Market',
-      location: 'Lusaka',
-      image:
-        'https://dynamic-media-cdn.tripadvisor.com/media/photo-o/15/2e/d4/6f/new-soweto-market.jpg?w=1200&h=-1&s=1',
-    },
-  ]);
+const imageUrl = "https://mybudgetapplication.com/App/images/";
+export default function Market({ navigation, route }) {
+  const [loading, setLoading] = useState(true);
+  const [searchText, setSearchText] = useState("");
+  const [markets, setMarkets] = useState([]);
 
-  // get markets
+  useEffect(() => {
+    if (route.params && route.params.search) {
+      setSearchText(route.params.search);
+    }
+  }, [route.params]);
+
+  const includesSearchText = (name) => {
+    return name.toLowerCase().includes(searchText.toLowerCase());
+  };
+
   const get = async () => {
-    // const response = await getMarkets();
-    // if (response.ok) setMarkets(response.json());
+    const response = await getMarkets();
+    setLoading(false);
+    if (response.ok) setMarkets(await response.json());
   };
 
   useEffect(() => get(), []);
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={{ flex: 1 }}>
+    <View style={styles.container}>
+      <View>
         <Text style={styles.title}>Available Markets</Text>
         <View style={styles.input}>
           <TextInput
             value={searchText}
             onChangeText={setSearchText}
+            keyboardType="default"
             style={{ padding: 8 }}
-            placeholder='Search for market...'
+            placeholder="Search for market..."
           />
         </View>
-        <View>
-          {markets.map(({ id, image, location, name }) => (
-            <Fragment>
-              {name.toLowerCase().includes(searchText.toLowerCase()) ? (
-                <TouchableOpacity
-                  onPress={() =>
-                    navigation.navigate('MarketDetails', { name, id })
-                  }
-                  style={styles.marketItem}
-                  key={id}
-                  activeOpacity={0.8}>
-                  <View style={styles.marketImageHolder}>
-                    <Image style={styles.marketImage} source={{ uri: image }} />
-                  </View>
-                  <View>
-                    <Text style={styles.marketName}>{name}</Text>
-                    <Text style={styles.marketLocation}>{location}</Text>
-                  </View>
-                </TouchableOpacity>
-              ) : null}
-            </Fragment>
-          ))}
-        </View>
       </View>
-    </ScrollView>
+
+      {loading && <ActivityIndicator color={colors.purpleColor} size="large" />}
+      <FlatList
+        data={markets}
+        keyExtractor={(extract) => extract.id}
+        renderItem={({ item: { id, name, town, market_image } }) => (
+          <Fragment>
+            {includesSearchText(name) && (
+              <TouchableOpacity
+                onPress={() =>
+                  navigation.navigate("MarketDetails", {
+                    id,
+                    name,
+                    town,
+                  })
+                }
+                style={styles.marketItem}
+                key={id}
+                activeOpacity={0.8}
+              >
+                <View style={styles.marketImageHolder}>
+                  <Image
+                    style={styles.marketImage}
+                    source={{ uri: imageUrl + market_image }}
+                  />
+                </View>
+                <View>
+                  <Text style={styles.marketName}>{name}</Text>
+                  <Text style={styles.marketTown}>{town}</Text>
+                </View>
+              </TouchableOpacity>
+            )}
+          </Fragment>
+        )}
+      />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'white',
+    backgroundColor: "white",
     paddingHorizontal: 20,
   },
   title: {
-    fontWeight: '700',
+    fontWeight: "700",
     fontSize: 18,
     color: colors.purpleColor,
-    textAlign: 'center',
+    textAlign: "center",
     marginTop: 20,
   },
   input: {
-    borderColor: '#ddd',
+    borderColor: "#ddd",
     borderWidth: 1.8,
     borderRadius: 15,
     marginVertical: 10,
   },
   marketItem: {
-    flexDirection: 'row',
+    flexDirection: "row",
     flex: 1,
   },
   marketImageHolder: {
@@ -102,14 +120,14 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: 4,
-    backgroundColor: 'black',
+    backgroundColor: "black",
   },
   marketName: {
     fontSize: 18,
-    fontWeight: '700',
-    color: '#333',
+    fontWeight: "700",
+    color: "#333",
   },
-  marketLocation: {
-    color: '#333',
+  marketTown: {
+    color: "#333",
   },
 });

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useContext, useEffect, useState } from "react";
 import {
   ScrollView,
   StyleSheet,
@@ -7,44 +7,49 @@ import {
   TextInput,
   TouchableOpacity,
   ToastAndroid,
-} from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { Formik } from 'formik';
+  ActivityIndicator,
+} from "react-native";
+import { useNavigation } from "@react-navigation/native";
+import { Formik } from "formik";
 
-import { colors } from '../constants';
+import userContext from "../context/user";
 
-import { createBudget } from '../api';
+import { colors } from "../constants";
+import { getBudgets } from "../api";
 
 export default function CreateBudget() {
-  const [prevBudgets, setPrevBudgets] = useState([
-    {
-      id: 1,
-      title: 'Monthly Budget for home',
-      amount: '5000',
-      date: '27 June, 2022',
-    },
-    {
-      id: 2,
-      title: 'Monthly Budget for home',
-      amount: '5000',
-      date: '27 August, 2022',
-    },
-  ]);
+  const [prevBudgets, setPrevBudgets] = useState([]);
+  const [budgetsLoading, setBudgetsLoading] = useState(true);
+
+  const { user } = useContext(userContext);
+
   const navigation = useNavigation();
 
   const handleValidate = ({ title, amount, description }) => {
     const errors = {};
-    if (!title) errors.title = '1';
-    if (!amount) errors.amount = '1';
-    if (!description) errors.description = '1';
+    if (!title) errors.title = "1";
+    if (!amount) errors.amount = "1";
+    if (!description) errors.description = "1";
 
     return errors;
   };
 
-  const handleSubmit = async values => {
-    const response = await createBudget({ ...values });
-    ToastAndroid.show('budget created successfully', ToastAndroid.SHORT);
+  const handleSubmit = async (values) => {
+    // const response = await createBudget({ ...values });
+    ToastAndroid.show("budget created successfully", ToastAndroid.SHORT);
   };
+
+  const get = async () => {
+    // pass user id in
+    const response = await getBudgets(user.id);
+    const budgets = await response.json();
+    setPrevBudgets(budgets);
+    setBudgetsLoading(false);
+  };
+
+  useEffect(() => {
+    get();
+  }, []);
 
   return (
     <ScrollView style={styles.container}>
@@ -53,47 +58,51 @@ export default function CreateBudget() {
         <Formik
           validate={handleValidate}
           onSubmit={handleSubmit}
-          initialValues={{ title: '', date: '', amount: '', description: '' }}>
+          initialValues={{ title: "", date: "", amount: "", description: "" }}
+        >
           {({ errors, values, handleChange, handleSubmit }) => (
             <View>
               <View
                 style={
                   errors.title
-                    ? [styles.input, { borderBottomColor: 'red' }]
+                    ? [styles.input, { borderBottomColor: "red" }]
                     : styles.input
-                }>
+                }
+              >
                 <TextInput
-                  placeholder='Budget title'
+                  placeholder="Budget title"
                   value={values.title}
                   style={{ padding: 5 }}
-                  onChangeText={handleChange('title')}
+                  onChangeText={handleChange("title")}
                 />
               </View>
               <View
                 style={
                   errors.amount
-                    ? [styles.input, { borderBottomColor: 'red' }]
+                    ? [styles.input, { borderBottomColor: "red" }]
                     : styles.input
-                }>
+                }
+              >
                 <TextInput
-                  placeholder='Budget amount'
+                  placeholder="Budget amount"
                   value={values.amount}
                   style={{ padding: 5 }}
-                  keyboardType='number-pad'
-                  onChangeText={handleChange('amount')}
+                  keyboardType="number-pad"
+                  onChangeText={handleChange("amount")}
                 />
               </View>
               <View
                 style={
                   errors.description
-                    ? [styles.input, { borderBottomColor: 'red' }]
+                    ? [styles.input, { borderBottomColor: "red" }]
                     : styles.input
-                }>
+                }
+              >
                 <TextInput
-                  placeholder='Budget description'
+                  placeholder="Budget description"
                   value={values.description}
                   style={{ padding: 5 }}
-                  onChangeText={handleChange('description')}
+                  onChangeText={handleChange("description")}
                 />
               </View>
               <View>
@@ -105,21 +114,25 @@ export default function CreateBudget() {
           )}
         </Formik>
         <Text style={styles.secondTitle}>Previous Budgets</Text>
+        {budgetsLoading && (
+          <ActivityIndicator color={colors.purpleColor} size="large" />
+        )}
         <View>
-          {prevBudgets.map(({ id, amount, date, title }) => (
+          {prevBudgets.map(({ id, amount, description, title }) => (
             <TouchableOpacity
               onPress={() =>
-                navigation.navigate('Main', {
-                  screen: 'BudgetProducts',
+                navigation.navigate("Main", {
+                  screen: "BudgetProducts",
                   params: { id },
                 })
               }
               style={styles.prevBudget}
               activeOpacity={0.8}
-              key={id}>
+              key={id}
+            >
               <Text style={styles.budgetTitle}>{title}</Text>
               <Text style={styles.budgetText}>{amount}</Text>
-              <Text style={styles.budgetText}>{date}</Text>
+              <Text style={styles.budgetText}>{description}</Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -131,18 +144,18 @@ export default function CreateBudget() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'white',
+    backgroundColor: "white",
     paddingHorizontal: 20,
   },
   title: {
-    textAlign: 'center',
-    fontWeight: '700',
+    textAlign: "center",
+    fontWeight: "700",
     fontSize: 18,
     color: colors.purpleColor,
     marginTop: 20,
   },
   input: {
-    borderBottomColor: '#ddd',
+    borderBottomColor: "#ddd",
     borderBottomWidth: 3,
     marginBottom: 20,
   },
@@ -152,32 +165,32 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     borderRadius: 15,
     marginTop: 10,
-    alignItems: 'center',
+    alignItems: "center",
   },
   buttonText: {
-    color: 'white',
-    fontWeight: '700',
+    color: "white",
+    fontWeight: "700",
     fontSize: 16,
   },
   prevBudget: {
     padding: 10,
-    borderBottomColor: '#ddd',
+    borderBottomColor: "#ddd",
     borderBottomWidth: 2,
   },
   budgetTitle: {
     color: colors.blueColor,
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: "700",
   },
   budgetText: {
-    color: '#555',
+    color: "#555",
     fontSize: 15,
   },
   secondTitle: {
     marginTop: 20,
     marginBottom: 10,
-    fontWeight: '700',
-    color: '#333',
+    fontWeight: "700",
+    color: "#333",
     fontSize: 17,
   },
 });

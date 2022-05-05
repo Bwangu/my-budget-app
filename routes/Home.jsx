@@ -1,6 +1,6 @@
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
-import React, { Fragment, useState } from 'react';
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
+import React, { Fragment, useEffect, useState } from "react";
 import {
   StyleSheet,
   Text,
@@ -9,25 +9,32 @@ import {
   ScrollView,
   TouchableOpacity,
   Image,
-} from 'react-native';
+  ActivityIndicator,
+  TextInput,
+} from "react-native";
+import { getFeatured } from "../api";
+import ChooseBudget from "../components/ChooseBudget";
 
-import { cards, categories, colors } from '../constants';
+import { cards, categories, colors } from "../constants";
 
-const Card = ({ idx, title, icon, color = 'white' }) => {
+const Card = ({ idx, title, icon, color = "white" }) => {
   const navigation = useNavigation();
-  const navigate = title => {
+  const navigate = (title) => {
     switch (title) {
-      case 'My Budget':
-        navigation.navigate('BudgetProducts');
+      case "My Budget":
+        navigation.navigate("CreateBudget");
         break;
-      case 'Market':
-        navigation.navigate('MarketStack', { screen: 'Market' });
+      case "Market":
+        navigation.navigate("MarketStack", { screen: "Market" });
         break;
-      case 'Monthly Budget':
-        navigation.navigate('CreateBudget');
+      case "Monthly Budget":
+        navigation.navigate("Main", { screen: "MonthlyBudget" });
+        break;
+      case "Weekly Recipe":
+        navigation.navigate("Main", { screen: "WeeklyRecipe" });
         break;
       default:
-        navigation.navigate('Home');
+        navigation.navigate("Home");
         break;
     }
   };
@@ -39,7 +46,8 @@ const Card = ({ idx, title, icon, color = 'white' }) => {
       style={[
         styles.card,
         { backgroundColor: color, marginLeft: idx % 1 == 0 ? 10 : 0 },
-      ]}>
+      ]}
+    >
       <Fragment>
         {icon}
         <Text style={styles.cardText}>{title}</Text>
@@ -52,9 +60,10 @@ const CategoryItem = ({ icon, name }) => {
   const navigation = useNavigation();
   return (
     <TouchableOpacity
-      onPress={() => navigation.navigate('Category', { name })}
+      onPress={() => navigation.navigate("Category", { name })}
       style={styles.categoryItem}
-      activeOpacity={0.8}>
+      activeOpacity={0.8}
+    >
       <Fragment>
         <View style={styles.categoryCardIcon}>{icon}</View>
         <Text style={styles.categoryCardText}>{name}</Text>
@@ -63,98 +72,80 @@ const CategoryItem = ({ icon, name }) => {
   );
 };
 
-const FeaturedCard = ({ id, name, description, amount, image, market }) => {
+const imageUrl = "https://mybudgetapplication.com/App/images/";
+const FeaturedCard = (props) => {
+  const { food, description, price, image } = props;
+  const [visible, setVisible] = useState(false);
+
   const navigation = useNavigation();
+
   const questionBudget = () => {
-    Alert.alert(
-      'Do you want to add to monthly budget',
-      'you can always remove items later',
-      [
-        {
-          text: 'Monthly',
-          onPress: () => null,
-        },
-        {
-          text: 'Daily',
-          onPress: () => null,
-        },
-      ]
-    );
+    setVisible(true);
+  };
+  const close = () => {
+    setVisible(false);
   };
   return (
     <TouchableOpacity
       style={styles.featuredCard}
       activeOpacity={0.8}
       onPress={() =>
-        navigation.navigate('MarketStack', {
-          screen: 'Product',
+        navigation.navigate("MarketStack", {
+          screen: "Product",
           params: {
-            id,
-            market,
-            name,
-            image,
-            description,
-            amount,
+            ...props,
+            image: imageUrl + image,
           },
         })
-      }>
+      }
+    >
       <Fragment>
         <View style={styles.featuredCardImageHolder}>
           <Image
             style={styles.featuredImage}
-            source={{ uri: image }}
-            resizeMode='cover'
-            width={120}
-            height={120}
+            source={{ uri: imageUrl + image, width: 120, height: 120 }}
           />
         </View>
         <View style={styles.featuredCardInfo}>
-          <Text style={styles.featuredName}>{name}</Text>
+          <Text style={styles.featuredName}>{food}</Text>
           <Text style={styles.featuredDescription}>{description}</Text>
-          <Text style={styles.featuredPrice}>K{amount}</Text>
+          <Text style={styles.featuredPrice}>K{price}</Text>
           <View>
             <TouchableOpacity
               onPress={questionBudget}
               style={styles.addBtn}
-              activeOpacity={0.8}>
-              <MaterialCommunityIcons name='plus' color='white' size={24} />
+              activeOpacity={0.8}
+            >
+              <MaterialCommunityIcons name="plus" color="white" size={24} />
             </TouchableOpacity>
           </View>
         </View>
       </Fragment>
+      <ChooseBudget close={close} visible={visible} budget={props} />
     </TouchableOpacity>
   );
 };
 
-export default function Home() {
-  const [featured, setFeatured] = useState([
-    {
-      id: 1,
-      name: 'Cabbage',
-      description: 'fresh as seen',
-      amount: 10,
-      market: 'Soweto Market',
-      image:
-        'https://www.almanac.com/sites/default/files/styles/large/public/image_nodes/cabbage_st-design_gettyimages.jpg?itok=8AzBHNDN',
-    },
-    {
-      id: 2,
-      name: 'Tomatoes',
-      description: 'Fresh tomatoes from the garden',
-      amount: '8',
-      market: 'New Market',
-      image:
-        'https://extension.umn.edu/sites/extension.umn.edu/files/styles/crop_featured_image_crop/public/Solanum-lycopersicum-Crista-fruit1-%281%29.jpg?h=943b9640&itok=Rev7Bp-K',
-    },
-    {
-      id: 3,
-      name: 'Carrots',
-      description: 'Fresh carrots from the garden',
-      market: 'Chikumanino Market',
-      amount: '5',
-      image: 'https://thumbs.dreamstime.com/b/carots-market-29328226.jpg',
-    },
-  ]);
+export default function Home({ navigation }) {
+  const [loading, setLoading] = useState([]);
+  const [featured, setFeatured] = useState([]);
+  const [search, setSearch] = useState("");
+
+  const searchItem = () => {
+    navigation.navigate("MarketStack", {
+      screen: "Market",
+      params: { search },
+    });
+  };
+
+  const get = async () => {
+    const response = await getFeatured();
+    setLoading(false);
+    setFeatured(await response.json());
+  };
+  useEffect(() => {
+    get();
+  }, []);
 
   return (
     <ScrollView style={styles.container}>
@@ -170,6 +161,29 @@ export default function Home() {
             />
           ))}
         </View>
+        <View style={styles.inputHolder}>
+          <TextInput
+            placeholder="Search "
+            style={styles.input}
+            value={search}
+            returnKeyType="search"
+            onSubmitEditing={searchItem}
+            onChangeText={setSearch}
+          />
+          <View>
+            <TouchableOpacity
+              activeOpacity={0.8}
+              style={styles.searchIcon}
+              onPress={searchItem}
+            >
+              <MaterialCommunityIcons
+                color={"white"}
+                size={25}
+                name="search-web"
+              />
+            </TouchableOpacity>
+          </View>
+        </View>
         <Text style={styles.sectionTitle}>Categories</Text>
         <View style={styles.categoryHolder}>
           {categories.map(({ name, icon }, idx) => (
@@ -177,8 +191,11 @@ export default function Home() {
           ))}
         </View>
         <Text style={styles.sectionTitle}>Featured Items</Text>
+        {loading && (
+          <ActivityIndicator size={"large"} color={colors.purpleColor} />
+        )}
         <View style={styles.featuredHolder}>
-          {featured.map(props => (
+          {featured.map((props) => (
             <FeaturedCard key={props.id} {...props} />
           ))}
         </View>
@@ -190,65 +207,63 @@ export default function Home() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'white',
+    backgroundColor: "white",
     paddingHorizontal: 20,
   },
   cardHolder: {
-    flexWrap: 'wrap',
-    flexDirection: 'row',
+    flexWrap: "wrap",
+    flexDirection: "row",
     marginTop: 20,
     maxWidth: 400,
-    borderBottomColor: '#eee',
-    borderBottomWidth: 4,
     paddingBottom: 20,
-    marginHorizontal: 'auto',
+    marginHorizontal: "auto",
   },
   card: {
     padding: 10,
     borderRadius: 4,
-    alignItems: 'center',
-    width: '45%',
+    alignItems: "center",
+    width: "45%",
     marginBottom: 10,
   },
   cardText: {
-    color: 'white',
+    color: "white",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
     marginTop: 10,
   },
   categoryHolder: {
-    flexWrap: 'wrap',
-    flexDirection: 'row',
+    flexWrap: "wrap",
+    flexDirection: "row",
     marginTop: 20,
-    borderBottomColor: '#eee',
+    borderBottomColor: "#eee",
     borderBottomWidth: 4,
     paddingBottom: 20,
   },
   sectionTitle: {
-    fontWeight: '700',
-    color: '#555',
+    fontWeight: "700",
+    color: "#555",
     fontSize: 18,
     marginTop: 10,
   },
   categoryItem: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 5,
-    width: '25%',
+    width: "25%",
   },
   categoryCardText: {
     fontSize: 12,
-    color: '#555',
-    textAlign: 'center',
+    color: "#555",
+    textAlign: "center",
     marginTop: 5,
   },
   categoryCardIcon: {
     padding: 5,
-    backgroundColor: '#ddd',
+    backgroundColor: "#ddd",
     borderRadius: 100,
   },
   featuredHolder: {},
   featuredCard: {
-    flexDirection: 'row',
+    flexDirection: "row",
     padding: 10,
   },
   featuredCardImageHolder: {
@@ -263,13 +278,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   featuredDescription: {
-    color: '#555',
+    color: "#555",
     fontSize: 13,
   },
   featuredPrice: {
     fontSize: 18,
-    color: 'orange',
-    fontWeight: '700',
+    color: "orange",
+    fontWeight: "700",
     flex: 1,
   },
   addBtn: {
@@ -278,7 +293,24 @@ const styles = StyleSheet.create({
     padding: 2,
     width: 30,
     height: 30,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  inputHolder: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderRadius: 9,
+    marginHorizontal: 10,
+    padding: 5,
+    backgroundColor: "#f0f0f0",
+  },
+  input: {
+    flex: 1,
+    paddingHorizontal: 10,
+  },
+  searchIcon: {
+    padding: 5,
+    backgroundColor: colors.purpleColor,
+    borderRadius: 9,
   },
 });

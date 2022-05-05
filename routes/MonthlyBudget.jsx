@@ -10,7 +10,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import { deleteBudgetItem, getBudgetItems } from "../api";
+import { getMonthlyBudgetItems } from "../api";
 import { colors } from "../constants";
 
 const imageUrl = "https://mybudgetapplication.com/App/images/";
@@ -19,32 +19,10 @@ export default function BudgetProducts({ navigation, route }) {
   const [loading, setLoading] = useState(true);
   const [deleteLoading, setDeleteLoading] = useState(false);
 
-  const { id } = route.params;
-
-  const deleteBudget = async (id) => {
-    const remove = async () => {
-      setDeleteLoading(true);
-      await deleteBudgetItem(id);
-      setDeleteLoading(false);
-      setBudget(budgets.filter((budget) => budget.id != id));
-    };
-
-    Alert.alert("Are you sure", "you want to remove this item", [
-      {
-        text: "Yes",
-        onPress: remove,
-        style: "destructive",
-      },
-      {
-        text: "No",
-        style: "destructive",
-      },
-    ]);
-  };
-
   const get = async () => {
-    const response = await getBudgetItems(id);
+    const response = await getMonthlyBudgetItems();
     const budgetItems = await response.json();
+    console.log(budgetItems);
     setLoading(false);
     setBudget(budgetItems);
   };
@@ -54,14 +32,15 @@ export default function BudgetProducts({ navigation, route }) {
     <FlatList
       ListHeaderComponent={() => (
         <View>
-          <Text style={styles.title}>Products in my Budget</Text>
+          <Text style={styles.title}>Monthly Budget</Text>
           {loading && (
             <ActivityIndicator color={colors.purpleColor} size="large" />
           )}
+
           <Text style={styles.noProducts}>
             {budgets.length == 0 &&
               !loading &&
-              "There is currently no monthly budget"}
+              "There are no items in your budget"}
           </Text>
         </View>
       )}
