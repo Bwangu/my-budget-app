@@ -9,24 +9,27 @@ import {
   ToastAndroid,
 } from "react-native";
 import React, { useContext, useEffect, useState } from "react";
+import { MaterialIcons } from "@expo/vector-icons";
+
 import { colors } from "../constants";
 import { addBudgetItem, getBudgets } from "../api";
-
-import { MaterialIcons } from "@expo/vector-icons";
 import userContext from "../context/user";
+import { useRoute } from "@react-navigation/native";
 
 export default function ChooseBudget({ visible, close, budget }) {
   const [loading, setLoading] = useState(true);
   const [budgets, setBudgets] = useState([]);
 
+  const route = useRoute();
   const { user } = useContext(userContext);
 
   const get = async () => {
+    setLoading(true)
     // pass user id in
     const response = await getBudgets(user.id);
     const budgets = await response.json();
-    setLoading(false);
     setBudgets(budgets);
+    setLoading(false);
   };
 
   const addToBudget = async (budget) => {
@@ -42,7 +45,7 @@ export default function ChooseBudget({ visible, close, budget }) {
 
   useEffect(() => {
     get();
-  }, []);
+  }, [visible, route.params]);
 
   return (
     <Modal visible={visible} onRequestClose={close}>
@@ -55,6 +58,12 @@ export default function ChooseBudget({ visible, close, budget }) {
         </Text>
         {loading && (
           <ActivityIndicator color={colors.purpleColor} size="large" />
+        )}
+        {!loading && budgets.length == 0 && (
+          <Text style={{ textAlign: "center", marginTop: 10 }}>
+            You currently do not have any budgets create one by going to the My
+            Budget section
+          </Text>
         )}
         {!loading && (
           <FlatList

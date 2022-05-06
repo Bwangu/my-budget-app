@@ -5,7 +5,7 @@ import {
   StyleSheet,
   Keyboard,
   TouchableOpacity,
-  TouchableHighlight,
+  Linking,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
@@ -113,6 +113,30 @@ const TabBar = () => {
           swipeThreshold={50}
         >
           <View style={styles.modalPill}></View>
+
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={async () => {
+              close();
+              await Linking.openURL(
+                "https://mybudgetapplication.com/about.php"
+              );
+            }}
+          >
+            <Text>About</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={async () => {
+              close();
+              await Linking.openURL(
+                "https://mybudgetapplication.com/about.php"
+              );
+            }}
+          >
+            <Text>Contact</Text>
+          </TouchableOpacity>
           <TouchableOpacity onPress={logout} style={styles.logout}>
             <Text>Logout</Text>
           </TouchableOpacity>
@@ -247,5 +271,12 @@ const styles = StyleSheet.create({
     marginBottom: 2,
     alignItems: "center",
     padding: 10,
+  },
+  menuItem: {
+    borderBottomColor: "#ddd",
+    borderBottomWidth: 1,
+    alignItems: "center",
+    padding: 10,
+    marginTop: 2,
   },
 });

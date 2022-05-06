@@ -46,6 +46,10 @@ async function deleteBudgetItem(id) {
   return await fetch(url + `/budget-items/delete.php?item=${id}`);
 }
 
+async function deleteBudget(budget, user) {
+  return await fetch(url + `/budget/delete.php?budget=${budget}&user=${user}`);
+}
+
 async function addBudgetItem(data) {
   return await fetch(url + `/budget-items/add.php`, {
     method: "POST",
@@ -82,4 +86,5 @@ export {
   getMonthlyBudgetItems,
   addBudgetItem,
   deleteBudgetItem,
+  deleteBudget,
 };

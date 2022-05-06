@@ -73,7 +73,7 @@ export default function BudgetProducts({ navigation, route }) {
             }}
           >
             <Text style={styles.title}>Products in {title}</Text>
-            <Text style={styles.title}>{!loading && `Total: ${total}`}</Text>
+            <Text style={styles.title}>{!loading && `Total: K${total}`}</Text>
           </View>
 
           {loading && (

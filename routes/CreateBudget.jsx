@@ -8,18 +8,21 @@ import {
   TouchableOpacity,
   ToastAndroid,
   ActivityIndicator,
+  Alert,
 } from "react-native";
+import { MaterialIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { Formik } from "formik";
 
 import userContext from "../context/user";
 
 import { colors } from "../constants";
-import { createBudget, getBudgets } from "../api";
+import { createBudget, getBudgets, deleteBudget } from "../api";
 
 export default function CreateBudget() {
   const [prevBudgets, setPrevBudgets] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
   const [budgetsLoading, setBudgetsLoading] = useState(true);
 
   const { user } = useContext(userContext);
@@ -35,10 +38,24 @@ export default function CreateBudget() {
     return errors;
   };
 
-  const handleSubmit = async (values) => {
-    const response = await createBudget({ ...values, user: user.id });
-    setLoading(false);
+  const handleDelete = async (id) => {
+    const response = await deleteBudget(id, user.id);
     ToastAndroid.show(await response.json(), ToastAndroid.SHORT);
+    setPrevBudgets(prevBudgets.filter((budget) => budget.id != id));
+  };
+
+  const removeBudget = (id) => {
+    Alert.alert("Are you sure", "you want to delete this budget", [
+      { text: "Yes", onPress: () => handleDelete(id), style: "destructive" },
+      { text: "No", style: "cancel" },
+    ]);
+  };
+
+  const handleSubmit = async (values) => {
+    setLoading(true)
+    const response = await createBudget({ ...values, user: user.id });
+    ToastAndroid.show("added item", ToastAndroid.SHORT);
+    setLoading(false);
   };
 
   const get = async () => {
@@ -51,7 +68,7 @@ export default function CreateBudget() {
 
   useEffect(() => {
     get();
-  }, []);
+  }, [loading]);
 
   return (
     <ScrollView style={styles.container}>
@@ -109,13 +126,11 @@ export default function CreateBudget() {
               </View>
               <View>
                 <TouchableOpacity style={styles.button} onPress={handleSubmit}>
-                  <Text style={styles.buttonText}>
-                    {loading ? (
-                      <ActivityIndicator color={"white"} size="small" />
-                    ) : (
-                      "Create Budget"
-                    )}
-                  </Text>
+                  {loading ? (
+                    <ActivityIndicator color={"white"} size="small" />
+                  ) : (
+                    <Text style={styles.buttonText}>Create Budget</Text>
+                  )}
                 </TouchableOpacity>
               </View>
             </View>
@@ -138,9 +153,23 @@ export default function CreateBudget() {
               activeOpacity={0.8}
               key={id}
             >
-              <Text style={styles.budgetTitle}>{title}</Text>
-              <Text style={styles.budgetText}>{amount}</Text>
-              <Text style={styles.budgetText}>{description}</Text>
+              <View style={styles.listLeft}>
+                <Text style={{ fontSize: 15 }}>{title}</Text>
+                <Text style={{ color: "#555" }}>{amount}</Text>
+                <Text style={styles.budgetText}>{description}</Text>
+              </View>
+              <View style={styles.listRight}>
+                <TouchableOpacity
+                  style={styles.delete}
+                  onPress={() => removeBudget(id)}
+                >
+                  {deleteLoading ? (
+                    <ActivityIndicator size={"small"} color="white" />
+                  ) : (
+                    <MaterialIcons name="delete" size={27} color="#333" />
+                  )}
+                </TouchableOpacity>
+              </View>
             </TouchableOpacity>
           ))}
         </View>
@@ -183,6 +212,7 @@ const styles = StyleSheet.create({
   prevBudget: {
     padding: 10,
     borderBottomColor: "#ddd",
+    flexDirection: "row",
     borderBottomWidth: 2,
   },
   budgetTitle: {
@@ -200,5 +230,11 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: "#333",
     fontSize: 17,
+  },
+  listLeft: {
+    flex: 1,
+  },
+  delete: {
+    padding: 5,
   },
 });
