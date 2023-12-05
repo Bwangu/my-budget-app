@@ -3,6 +3,7 @@
     "name": "MyBudget App",
     "slug": "my-budget-app",
     "version": "1.0.5",
+    "owner": "bwangu",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "splash": {
@@ -13,9 +14,7 @@
     "updates": {
       "fallbackToCacheTimeout": 0
     },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true
     },
